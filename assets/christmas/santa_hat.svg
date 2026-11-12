@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 80" width="100" height="80">
+  <defs>
+    <linearGradient id="hatRed" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E51F34" />
+      <stop offset="100%" stop-color="#9E0C1B" />
+    </linearGradient>
+    <filter id="hatShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <!-- Red body drooping to right -->
+  <path d="M22 56 C26 34 46 14 68 12 C78 11 82 20 74 26 C66 31 46 32 30 56 Z" fill="url(#hatRed)" filter="url(#hatShadow)"/>
+  <!-- Pompom at tip -->
+  <circle cx="76" cy="27" r="9" fill="#FFFFFF" filter="url(#hatShadow)"/>
+  <circle cx="76" cy="27" r="7.5" fill="#F4F4F4"/>
+  <!-- White plush brim -->
+  <rect x="14" y="52" width="46" height="15" rx="7.5" fill="#FFFFFF" filter="url(#hatShadow)"/>
+  <rect x="16" y="53.5" width="42" height="12" rx="6" fill="#F8F8F8"/>
+</svg>

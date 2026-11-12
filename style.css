@@ -62,7 +62,7 @@ html {
 }
 
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Tinos', 'Times New Roman', Times, 'Playfair Display', Georgia, serif;
   background: var(--cream);
   color: var(--text);
   overflow-x: hidden;

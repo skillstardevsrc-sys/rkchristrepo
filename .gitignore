@@ -7,3 +7,11 @@ serviceAccountKey.json
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Scratch and backup files
+scratch_*
+slice_*
+zoom_top.png
+*.backup*
+*.diwali.png
+

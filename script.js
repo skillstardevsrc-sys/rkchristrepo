@@ -492,7 +492,7 @@ function renderWishlist() {
   if (!list) return;
   list.innerHTML = '';
   if (wishlist.length === 0) {
-    list.innerHTML = '<div style="text-align:center; margin-top: 40px; color: #888;">Your wishlist is empty. ✿</div>';
+    list.innerHTML = '<div style="text-align:center; margin-top: 50px; color: #8A6D56; font-size: 15px; font-weight: 500;">Your wishlist is empty. 🎄</div>';
   }
   wishlist.forEach((item, index) => {
     list.innerHTML += `
@@ -536,6 +536,9 @@ function renderCart() {
   const totalEl = document.getElementById('cart-total');
   if (!list) return;
   list.innerHTML = '';
+  if (cart.length === 0) {
+    list.innerHTML = '<div style="text-align:center; margin-top: 50px; color: #8A6D56; font-size: 15px; font-weight: 500;">Your cart is empty. 🎁</div>';
+  }
   let total = 0;
   cart.forEach((item, index) => {
     total += parseInt(item.price);
@@ -1534,12 +1537,12 @@ function renderGrid() {
         </div>
 
       </div>
-      <div class="product-info" style="display: flex; flex-direction: column; flex-grow: 1; padding: 15px;">
-        <div class="product-price" style="display: block !important; margin-bottom: 8px;">
-          <span class="price-main" style="color: var(--gold-dark); font-weight: 700; font-size: 18px;">₹${(extractPriceFromDesc(p.description) || p.price || 0).toLocaleString('en-IN')}</span>
+      <div class="product-info">
+        <div class="product-type">${p.category.toUpperCase()}</div>
+        <h3 class="product-name">${p.name}</h3>
+        <div class="product-price">
+          <span class="price-main">₹${(extractPriceFromDesc(p.description) || p.price || 0).toLocaleString('en-IN')}</span>
         </div>
-        <div class="product-type" style="font-size: 10px; color: var(--muted); text-transform: uppercase;">${p.category.toUpperCase()}</div>
-        <h3 class="product-name" style="margin: 5px 0 15px 0;">${p.name}</h3>
         ${isOOS
         ? `<button class="btn-oos" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:auto;width:100%;padding:12px 16px;border:1.5px solid #b0937a;background:linear-gradient(135deg,#f5ede6,#efe4d8);color:#7a4a2a;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border-radius:4px;cursor:not-allowed;font-family:'Poppins',sans-serif;" disabled>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
@@ -1635,12 +1638,12 @@ function renderNewArrivals() {
           <svg viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         </div>
       </div>
-      <div class="product-info" style="display: flex; flex-direction: column; flex-grow: 1; padding: 15px;">
-        <div class="product-price" style="display: block !important; margin-bottom: 8px;">
-          <span class="price-main" style="color: var(--gold-dark); font-weight: 700; font-size: 18px;">₹${priceVal.toLocaleString('en-IN')}</span>
+      <div class="product-info">
+        <div class="product-type">${categoryName}</div>
+        <h3 class="product-name">${p.name}</h3>
+        <div class="product-price">
+          <span class="price-main">₹${priceVal.toLocaleString('en-IN')}</span>
         </div>
-        <div class="product-type" style="font-size: 10px; color: var(--muted); text-transform: uppercase;">${categoryName}</div>
-        <h3 class="product-name" style="margin: 5px 0 15px 0;">${p.name}</h3>
         ${isOOS
         ? `<button class="btn-oos" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:auto;width:100%;padding:12px 16px;border:1.5px solid #b0937a;background:linear-gradient(135deg,#f5ede6,#efe4d8);color:#7a4a2a;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border-radius:4px;cursor:not-allowed;font-family:'Poppins',sans-serif;" disabled>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
@@ -2343,15 +2346,12 @@ function handleMainImgSwipe() {
   }
 }
 
-// LEAD POPUP & FIREWORKS LOGIC
+// LEAD POPUP LOGIC
 window.openLeadModal = () => {
   const leadModal = document.getElementById('leadModal');
   if (leadModal) {
     leadModal.style.display = 'flex';
     document.body.classList.add('modal-open');
-    if (typeof window.triggerPattasuFireworks === 'function') {
-      window.triggerPattasuFireworks(4500);
-    }
   }
 };
 
@@ -2389,11 +2389,6 @@ window.handleLead = (e) => {
     db.collection("leads").add(leadData)
       .then(() => console.log("Lead saved to Firestore!"))
       .catch(err => console.error("Firestore lead error:", err));
-  }
-
-  // Trigger celebration fireworks (pattasu)
-  if (typeof window.triggerPattasuFireworks === 'function') {
-    window.triggerPattasuFireworks(5000);
   }
 
   alert("Thank you, " + name + "! Our master stylist will contact you shortly.");
@@ -2457,11 +2452,6 @@ window.handleNewsletterSubscribe = (e) => {
     } catch (err) {
       console.error("Firestore write error:", err);
     }
-  }
-
-  // 3. Trigger celebration fireworks if available
-  if (typeof window.triggerPattasuFireworks === 'function') {
-    window.triggerPattasuFireworks(4000);
   }
 
   // 4. Update UI & Feedback immediately
@@ -3839,6 +3829,7 @@ document.addEventListener('DOMContentLoaded', () => {
           navLogoImg.style.transition = 'opacity 0.5s ease';
           navLogoImg.style.opacity = '1';
           splashScreen.classList.add('scrolled');
+          if (typeof triggerHeroRevealAnimation === 'function') triggerHeroRevealAnimation();
 
           // Restore scrolling only after the splash background is gone
           setTimeout(() => {
@@ -3860,8 +3851,26 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       splashScreen.style.display = 'none';
       navLogoImg.style.opacity = '1';
+      if (typeof triggerHeroRevealAnimation === 'function') triggerHeroRevealAnimation();
     }
   }
+});
+
+function triggerHeroRevealAnimation() {
+  const heroContent = document.querySelector('.xmas-hero-content');
+  if (heroContent) {
+    const animatedElements = heroContent.querySelectorAll(
+      '.xmas-hero-badge, .xmas-title-line1, .xmas-title-line2 em, .xmas-hero-divider, .xmas-hero-subtitle, .xmas-hero-btns'
+    );
+    animatedElements.forEach(el => {
+      el.style.animation = 'none';
+      void el.offsetHeight;
+      el.style.animation = '';
+    });
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(triggerHeroRevealAnimation, 100);
 });
 
 // --- FAB INJECTION ---
@@ -3956,11 +3965,8 @@ function initTestimonialCarousel() {
 }
 
 document.addEventListener('DOMContentLoaded', initTestimonialCarousel);
-// Custom Blouse Booking Logic - Direct Google Form Open with Pattasu Fireworks
+// Custom Blouse Booking Logic - Direct Google Form Open
 window.openBlouseBooking = () => {
-  if (typeof window.triggerPattasuFireworks === 'function') {
-    window.triggerPattasuFireworks(4000);
-  }
   const modal = document.getElementById('blouseModal');
   if (modal) {
     modal.style.display = 'flex';
@@ -4126,257 +4132,6 @@ window.shareProduct = function (productId) {
   }
 };
 
-/* ==========================================================================
-   PATTASU FIREWORKS ENGINE (Festive Crackers Explosion Effect)
-   ========================================================================== */
-window.triggerPattasuFireworks = function (durationMs = 4500) {
-  let canvas = document.getElementById('pattasuFireworksCanvas');
-  if (!canvas) {
-    canvas = document.createElement('canvas');
-    canvas.id = 'pattasuFireworksCanvas';
-    canvas.style.position = 'fixed';
-    canvas.style.top = '0';
-    canvas.style.left = '0';
-    canvas.style.width = '100vw';
-    canvas.style.height = '100vh';
-    canvas.style.pointerEvents = 'none';
-    canvas.style.zIndex = '999999';
-    document.body.appendChild(canvas);
-  }
-
-  const ctx = canvas.getContext('2d');
-  let width = (canvas.width = window.innerWidth);
-  let height = (canvas.height = window.innerHeight);
-
-  const handleResize = () => {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-  };
-  window.addEventListener('resize', handleResize);
-
-  const colors = [
-    '#ffd700', // Metallic Gold
-    '#ff3366', // Crimson Flare
-    '#ff9900', // Amber Diya
-    '#00f2fe', // Turquoise Spark
-    '#00ff87', // Emerald Star
-    '#ff007f', // Deep Fuchsia
-    '#ffffff', // Diamond White
-    '#ffea00'  // Bright Yellow
-  ];
-
-  class Rocket {
-    constructor(x, targetY, color) {
-      this.x = x;
-      this.y = height;
-      this.targetY = targetY;
-      this.color = color;
-      this.speed = 9 + Math.random() * 6;
-      this.angle = -Math.PI / 2 + (Math.random() - 0.5) * 0.25;
-      this.vx = Math.cos(this.angle) * this.speed;
-      this.vy = Math.sin(this.angle) * this.speed;
-      this.exploded = false;
-      this.trail = [];
-    }
-
-    update() {
-      this.trail.push({ x: this.x, y: this.y, alpha: 1 });
-      if (this.trail.length > 8) this.trail.shift();
-      this.trail.forEach(t => (t.alpha -= 0.12));
-
-      this.x += this.vx;
-      this.y += this.vy;
-      this.vy += 0.06;
-
-      if (this.vy >= 0 || this.y <= this.targetY) {
-        this.exploded = true;
-        createExplosion(this.x, this.y, this.color);
-      }
-    }
-
-    draw() {
-      this.trail.forEach(t => {
-        ctx.beginPath();
-        ctx.arc(t.x, t.y, 2.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 215, 0, ${t.alpha})`;
-        ctx.fill();
-      });
-
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, 3.5, 0, Math.PI * 2);
-      ctx.fillStyle = this.color;
-      ctx.shadowBlur = 14;
-      ctx.shadowColor = this.color;
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    }
-  }
-
-  class Particle {
-    constructor(x, y, color, isSparkler = false) {
-      this.x = x;
-      this.y = y;
-      this.color = color;
-      const speed = isSparkler ? Math.random() * 12 + 2 : Math.random() * 8 + 1;
-      const angle = Math.random() * Math.PI * 2;
-      this.vx = Math.cos(angle) * speed;
-      this.vy = Math.sin(angle) * speed;
-      this.gravity = 0.12;
-      this.friction = 0.96;
-      this.alpha = 1;
-      this.decay = Math.random() * 0.02 + 0.012;
-      this.size = Math.random() * 3.5 + 1.5;
-      this.sparkle = Math.random() > 0.4;
-    }
-
-    update() {
-      this.vx *= this.friction;
-      this.vy *= this.friction;
-      this.vy += this.gravity;
-      this.x += this.vx;
-      this.y += this.vy;
-      this.alpha -= this.decay;
-    }
-
-    draw() {
-      if (this.alpha <= 0) return;
-      ctx.save();
-      ctx.globalAlpha = this.sparkle && Math.random() > 0.4 ? this.alpha * 0.5 : this.alpha;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-      ctx.fillStyle = this.color;
-      ctx.shadowBlur = 12;
-      ctx.shadowColor = this.color;
-      ctx.fill();
-      ctx.restore();
-    }
-  }
-
-  class FountainParticle {
-    constructor(x, y) {
-      this.x = x;
-      this.y = y;
-      this.vx = (Math.random() - 0.5) * 4.5;
-      this.vy = -(Math.random() * 11 + 10);
-      this.gravity = 0.35;
-      this.alpha = 1;
-      this.decay = Math.random() * 0.03 + 0.015;
-      this.color = Math.random() > 0.5 ? '#ffd700' : '#ffffff';
-      this.size = Math.random() * 2.5 + 1;
-    }
-    update() {
-      this.vy += this.gravity;
-      this.x += this.vx;
-      this.y += this.vy;
-      this.alpha -= this.decay;
-    }
-    draw() {
-      if (this.alpha <= 0) return;
-      ctx.save();
-      ctx.globalAlpha = this.alpha;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-      ctx.fillStyle = this.color;
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = '#ffd700';
-      ctx.fill();
-      ctx.restore();
-    }
-  }
-
-  let rockets = [];
-  let particles = [];
-  let fountains = [];
-
-  function createExplosion(x, y, color) {
-    const particleCount = 65 + Math.floor(Math.random() * 35);
-    for (let i = 0; i < particleCount; i++) {
-      particles.push(new Particle(x, y, color));
-    }
-    for (let i = 0; i < 22; i++) {
-      particles.push(new Particle(x, y, '#ffd700', true));
-    }
-  }
-
-  const startTime = Date.now();
-  let animId;
-
-  const launchInterval = setInterval(() => {
-    if (Date.now() - startTime > durationMs - 1000) {
-      clearInterval(launchInterval);
-      return;
-    }
-    for (let i = 0; i < 2; i++) {
-      const rx = Math.random() * (width * 0.8) + width * 0.1;
-      const ry = Math.random() * (height * 0.4) + height * 0.15;
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      rockets.push(new Rocket(rx, ry, color));
-    }
-    if (Math.random() > 0.3) {
-      const fx = Math.random() > 0.5 ? width * 0.15 : width * 0.85;
-      for (let f = 0; f < 15; f++) {
-        fountains.push(new FountainParticle(fx, height));
-      }
-    }
-  }, 350);
-
-  // Initial burst
-  for (let i = 0; i < 3; i++) {
-    const rx = Math.random() * (width * 0.6) + width * 0.2;
-    const ry = Math.random() * (height * 0.35) + height * 0.15;
-    const color = colors[Math.floor(Math.random() * colors.length)];
-    rockets.push(new Rocket(rx, ry, color));
-  }
-
-  function loop() {
-    ctx.clearRect(0, 0, width, height);
-
-    rockets.forEach((r, idx) => {
-      r.update();
-      r.draw();
-      if (r.exploded) rockets.splice(idx, 1);
-    });
-
-    particles.forEach((p, idx) => {
-      p.update();
-      p.draw();
-      if (p.alpha <= 0) particles.splice(idx, 1);
-    });
-
-    fountains.forEach((f, idx) => {
-      f.update();
-      f.draw();
-      if (f.alpha <= 0) fountains.splice(idx, 1);
-    });
-
-    if (Date.now() - startTime < durationMs || rockets.length > 0 || particles.length > 0 || fountains.length > 0) {
-      animId = requestAnimationFrame(loop);
-    } else {
-      cancelAnimationFrame(animId);
-      window.removeEventListener('resize', handleResize);
-      ctx.clearRect(0, 0, width, height);
-      if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
-    }
-  }
-
-  loop();
-};
-
-window.triggerFireworks = window.triggerPattasuFireworks;
-
-// Auto-trigger pattasu fireworks when custom blouse order form page or lead form opens
-document.addEventListener('DOMContentLoaded', () => {
-  const isCustomBlousePage = window.location.pathname.includes('custom-blouse-order') ||
-                             document.querySelector('.google-form-container') ||
-                             document.getElementById('customBlouseForm');
-  if (isCustomBlousePage) {
-    setTimeout(() => {
-      if (typeof window.triggerPattasuFireworks === 'function') {
-        window.triggerPattasuFireworks(4500);
-      }
-    }, 600);
-  }
-});
 
 /* ==========================================================================
    HERO TITLE LETTER-BY-LETTER REVEAL ANIMATION
@@ -4714,11 +4469,6 @@ window.handleAppointmentSubmit = (e) => {
       notes: notes,
       date: new Date().toISOString()
     }).catch(err => console.error("Firestore lead error:", err));
-  }
-
-  // 3. Trigger festive celebration fireworks if available
-  if (typeof window.triggerPattasuFireworks === 'function') {
-    window.triggerPattasuFireworks(4000);
   }
 
   alert("Thank you, " + name + "! Your appointment for " + service + " has been booked.\n\nOur master stylist will call you shortly to confirm your session.");

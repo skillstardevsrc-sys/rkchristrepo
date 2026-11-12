@@ -41,23 +41,23 @@
   text-transform: uppercase;
   color: var(--gold, #C9A84C);
   margin-bottom: 8px;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Tinos', 'Times New Roman', Times, 'Playfair Display', Georgia, serif;
   font-weight: 600;
 }
 
 .cb-title-gold {
   font-size: clamp(28px, 4vw, 42px);
   color: #fff;
-  font-family: 'Playfair Display', serif;
+  font-family: 'Tinos', 'Times New Roman', Times, 'Playfair Display', Georgia, serif;
   margin-bottom: 8px;
   letter-spacing: 0.5px;
 }
 
 .cb-title-gold em {
-  font-family: 'Great Vibes', cursive;
+  font-family: 'Tinos', 'Times New Roman', Times, 'Playfair Display', Georgia, serif;
   color: var(--gold, #C9A84C);
   font-style: normal;
-  font-size: 1.25em;
+  font-size: 1.15em;
 }
 
 .cb-decor-gold {
@@ -394,9 +394,10 @@
 }
 
 .cb-subtitle {
-  font-family: 'Great Vibes', cursive;
+  font-family: 'Tinos', 'Times New Roman', Times, 'Playfair Display', Georgia, serif;
   color: #e91e63;
-  font-size: 20px;
+  font-size: 16px;
+  font-weight: 600;
   margin-bottom: -5px;
   display: block;
 }

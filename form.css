@@ -32,9 +32,10 @@
 }
 
 .cb-subtitle {
-  font-family: 'Great Vibes', cursive;
+  font-family: 'Tinos', 'Times New Roman', Times, 'Playfair Display', Georgia, serif;
   color: #e91e63;
-  font-size: 20px;
+  font-size: 16px;
+  font-weight: 600;
   margin-bottom: -5px;
   display: block;
 }
