@@ -315,22 +315,24 @@
       animation: ashFade 0.6s ease both 0.1s;
     }
     .ash-title {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(2.2rem, 5vw, 3.6rem);
+      font-family: 'Tinos', 'Times New Roman', Times, 'Playfair Display', Georgia, serif;
+      font-size: clamp(2.4rem, 5.2vw, 3.8rem);
       font-weight: 700;
-      color: var(--charcoal, #1a1a1a);
+      color: #38050C;
       line-height: 1.2;
-      margin: 0 0 26px;
+      margin: 0 0 24px;
       animation: ashFade 0.6s ease both 0.22s;
       display: block;
+      letter-spacing: -0.2px;
     }
     .ash-title .ash-script {
-      font-family: 'Great Vibes', cursive;
-      font-size: 1.5em;
-      font-weight: 400;
-      display: inline;
-      color: var(--gold);
-      vertical-align: middle;
+      font-family: 'Tinos', 'Times New Roman', Times, 'Playfair Display', Georgia, serif;
+      font-size: 1em;
+      font-weight: 700;
+      font-style: normal;
+      display: inline-block;
+      color: #8C1425;
+      margin-left: 6px;
     }
     .ash-rule {
       display: flex;
@@ -369,7 +371,7 @@
         <!-- Card 1: Boutique Visit & Appointments -->
         <div style="background:#fff; border-radius:16px; padding:32px 26px; border:1px solid rgba(212,175,55,0.25); text-align:center; box-shadow:0 8px 30px rgba(0,0,0,0.05); display:flex; flex-direction:column; align-items:center;">
           <div style="width:54px; height:54px; border-radius:50%; background:rgba(212,175,55,0.12); color:var(--gold-dark); display:flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:16px;">
-            🪷
+            ✦
           </div>
           <h3 style="font-family:'Playfair Display',serif; font-size:1.3rem; color:var(--dark); margin-bottom:8px;">Book an Appointment</h3>
           <p style="font-size:0.9rem; color:#666; line-height:1.6; margin-bottom:20px;">
@@ -694,22 +696,20 @@
   <!-- AUTH MODAL -->
   <div class="modal" id="authModal">
     <div class="modal-content">
-      <video class="auth-bg-video" autoplay loop muted playsinline>
-        <source src="form.mp4" type="video/mp4">
-      </video>
+      <img src="assets/christmas/login_xmas_goblin_bg.jpg" alt="Christmas Login" class="auth-bg-image">
       <div class="auth-video-overlay"></div>
-      <span class="modal-close" onclick="closeAuth()">×</span>
+      <span class="modal-close" onclick="closeAuth()">&times;</span>
 
       <div class="auth-form-card">
         <!-- Login Form -->
         <div id="loginView">
-          <div class="auth-top-ornament">🪷</div>
+          <div class="auth-top-ornament">✦</div>
           <span class="section-label">WELCOME BACK</span>
           <p class="auth-subtitle">Let's continue your festive journey</p>
           <h3 class="auth-heading">Sign In</h3>
           <div class="auth-ornamental-divider">
             <span class="line"></span>
-            <span class="symbol">🪷</span>
+            <span class="symbol">✦</span>
             <span class="line"></span>
           </div>
 
@@ -738,7 +738,7 @@
           <p class="auth-footer-text">Don't have an account? <a href="javascript:void(0)" onclick="toggleAuth(false)" class="auth-switch-link">Register</a></p>
           <div class="auth-ornamental-divider small">
             <span class="line"></span>
-            <span class="symbol">🪷</span>
+            <span class="symbol">✦</span>
             <span class="line"></span>
           </div>
           <p class="auth-admin-note">Admin? Use your secret password above.</p>
@@ -746,13 +746,13 @@
 
         <!-- Register Form -->
         <div id="registerView" style="display:none">
-          <div class="auth-top-ornament">🪷</div>
+          <div class="auth-top-ornament">✦</div>
           <span class="section-label">JOIN ROKEA BY RK</span>
           <p class="auth-subtitle">Begin your festive journey</p>
           <h3 class="auth-heading">Sign Up</h3>
           <div class="auth-ornamental-divider">
             <span class="line"></span>
-            <span class="symbol">🪷</span>
+            <span class="symbol">✦</span>
             <span class="line"></span>
           </div>
 
@@ -792,13 +792,13 @@
         </div>
         <!-- Forgot Password Form -->
         <div id="forgotView" style="display:none">
-          <div class="auth-top-ornament">🪷</div>
+          <div class="auth-top-ornament">✦</div>
           <span class="section-label">ACCOUNT RECOVERY</span>
           <p class="auth-subtitle">Recover your festive journey</p>
           <h3 class="auth-heading">Reset Password</h3>
           <div class="auth-ornamental-divider">
             <span class="line"></span>
-            <span class="symbol">🪷</span>
+            <span class="symbol">✦</span>
             <span class="line"></span>
           </div>
 

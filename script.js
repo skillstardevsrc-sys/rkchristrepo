@@ -1501,62 +1501,324 @@ function renderMarquee() {
 }
 
 // =============================================
-// PRODUCT GRID
+// PRODUCT GRID & BOUTIQUE FILTERING
 // =============================================
+
+let currentSubFilter = 'all';
+let currentSearchQuery = '';
+let filterInStockOnly = false;
+
+const subFiltersByCategory = {
+  sarees: [
+    { label: 'All Sarees', value: 'all' },
+    { label: 'Silk Sarees', value: 'silk' },
+    { label: 'Banarasi', value: 'banarasi' },
+    { label: 'Soft Silk', value: 'soft' },
+    { label: 'Kanjeevaram', value: 'kanjeevaram' },
+    { label: 'Festive Weaves', value: 'festive' },
+    { label: 'Under ₹5,000', value: 'under_5000' }
+  ],
+  imitation: [
+    { label: 'All Jewellery', value: 'all' },
+    { label: 'Temple Sets', value: 'temple' },
+    { label: 'Necklaces & Chokers', value: 'necklace' },
+    { label: 'Earrings & Jhumkas', value: 'earring' },
+    { label: 'Bangles & Kada', value: 'bangle' },
+    { label: 'Bridal Sets', value: 'bridal' },
+    { label: 'Under ₹2,000', value: 'under_2000' }
+  ]
+};
+
+function renderSubFilters() {
+  const container = document.getElementById('subfilter-chips');
+  if (!container) return;
+  const list = subFiltersByCategory[currentCategory] || [];
+  container.innerHTML = list.map(item => `
+    <button type="button" class="subfilter-chip ${currentSubFilter === item.value ? 'active' : ''}" onclick="setSubFilter('${item.value}')">
+      ${item.label}
+    </button>
+  `).join('');
+}
+
+window.setSubFilter = (val) => {
+  currentSubFilter = val;
+  renderSubFilters();
+  renderGrid();
+};
+
+window.handleProductSearch = (val) => {
+  currentSearchQuery = (val || '').trim().toLowerCase();
+  const clearBtn = document.getElementById('searchClearBtn');
+  if (clearBtn) {
+    clearBtn.style.display = currentSearchQuery ? 'inline-flex' : 'none';
+  }
+  renderGrid();
+};
+
+window.clearProductSearch = () => {
+  currentSearchQuery = '';
+  const input = document.getElementById('productSearchInput');
+  if (input) input.value = '';
+  const clearBtn = document.getElementById('searchClearBtn');
+  if (clearBtn) clearBtn.style.display = 'none';
+  renderGrid();
+};
+
+window.toggleInStockFilter = (checked) => {
+  filterInStockOnly = !!checked;
+  renderGrid();
+};
+
+window.resetAllProductFilters = () => {
+  currentSubFilter = 'all';
+  currentSearchQuery = '';
+  filterInStockOnly = false;
+  currentSort = 'default';
+
+  const searchInput = document.getElementById('productSearchInput');
+  if (searchInput) searchInput.value = '';
+  const clearBtn = document.getElementById('searchClearBtn');
+  if (clearBtn) clearBtn.style.display = 'none';
+  const stockToggle = document.getElementById('inStockToggle');
+  if (stockToggle) stockToggle.checked = false;
+  const sortSelect = document.getElementById('price-sort');
+  if (sortSelect) sortSelect.value = 'default';
+
+  renderSubFilters();
+  renderGrid();
+};
+
+window.orderOnWhatsApp = (productId) => {
+  const p = products.find(prod => prod.id == productId);
+  if (!p) return;
+  const price = (extractPriceFromDesc(p.description) || p.price || 0).toLocaleString('en-IN');
+  const link = getAbsoluteProductLink(p);
+  const text = `Hello ROKEA by RK, I would like to enquire about this Christmas Festive Collection:\n\n*${p.name}*\nPrice: ₹${price}\nLink: ${link}\n\nPlease confirm availability & complimentary festive gift packaging!`;
+  window.open(`https://wa.me/917010394051?text=${encodeURIComponent(text)}`, '_blank');
+};
 
 function renderGrid() {
   const grid = document.getElementById('main-product-grid');
   if (!grid) return;
+
+  // Update Category counts in tabs
+  const sareesTotal = products.filter(p => p.category === 'sarees').length;
+  const jewelsTotal = products.filter(p => p.category === 'imitation').length;
+  const sareesBadge = document.getElementById('sarees-count');
+  if (sareesBadge) sareesBadge.innerText = sareesTotal;
+  const jewelsBadge = document.getElementById('jewels-count');
+  if (jewelsBadge) jewelsBadge.innerText = jewelsTotal;
+
+  // Breadcrumb label
+  const breadLabel = document.getElementById('breadcrumbCategoryLabel');
+  if (breadLabel) {
+    breadLabel.innerText = currentCategory === 'imitation' ? 'Heritage Jewellery' : 'Luxury Sarees';
+  }
+
+  // Ensure subfilter chips are rendered
+  if (document.getElementById('subfilter-chips') && !document.getElementById('subfilter-chips').hasChildNodes()) {
+    renderSubFilters();
+  }
+
+  // Filter by category
   let filtered = products.filter(p => p.category === currentCategory);
+
+  // Filter by In-Stock Only
+  if (filterInStockOnly) {
+    filtered = filtered.filter(p => p.stock !== 'Out of Stock');
+  }
+
+  // Filter by Sub-filter chips
+  if (currentSubFilter && currentSubFilter !== 'all') {
+    if (currentSubFilter === 'under_5000') {
+      filtered = filtered.filter(p => (extractPriceFromDesc(p.description) || p.price || 0) <= 5000);
+    } else if (currentSubFilter === 'under_2000') {
+      filtered = filtered.filter(p => (extractPriceFromDesc(p.description) || p.price || 0) <= 2000);
+    } else {
+      const q = currentSubFilter.toLowerCase();
+      filtered = filtered.filter(p => {
+        const fullText = (p.name + ' ' + (p.description || '')).toLowerCase();
+        return fullText.includes(q);
+      });
+    }
+  }
+
+  // Filter by Search Query
+  if (currentSearchQuery) {
+    const q = currentSearchQuery.toLowerCase();
+    filtered = filtered.filter(p => {
+      const fullText = (p.name + ' ' + (p.description || '') + ' ' + (p.category || '')).toLowerCase();
+      return fullText.includes(q);
+    });
+  }
+
+  // Update visible count in toolbar
+  const visibleCountEl = document.getElementById('visibleCount');
+  if (visibleCountEl) visibleCountEl.innerText = filtered.length;
+
+  // Empty state handling
+  const emptyStateEl = document.getElementById('boutiqueEmptyState');
+  if (filtered.length === 0) {
+    grid.innerHTML = '';
+    if (emptyStateEl) emptyStateEl.style.display = 'block';
+    return;
+  } else {
+    if (emptyStateEl) emptyStateEl.style.display = 'none';
+  }
 
   // Apply Sorting
   if (currentSort === 'low') {
-    filtered.sort((a, b) => a.price - b.price);
+    filtered.sort((a, b) => (extractPriceFromDesc(a.description) || a.price || 0) - (extractPriceFromDesc(b.description) || b.price || 0));
   } else if (currentSort === 'high') {
-    filtered.sort((a, b) => b.price - a.price);
+    filtered.sort((a, b) => (extractPriceFromDesc(b.description) || b.price || 0) - (extractPriceFromDesc(a.description) || a.price || 0));
+  } else if (currentSort === 'newest') {
+    filtered.sort((a, b) => (parseFloat(b.id) || 0) - (parseFloat(a.id) || 0));
   } else {
-    // Default: Sort by position (ascending)
     filtered.sort((a, b) => (a.position || 0) - (b.position || 0));
   }
 
-  grid.innerHTML = filtered.map((p) => {
-    const inWishlist = wishlist.find(w => w.id == p.id);
+  grid.innerHTML = filtered.map((p, idx) => {
+    const inWishlist = wishlist && wishlist.find(w => w.id == p.id);
     const isOOS = p.stock === 'Out of Stock';
+    const isItemInCart = cart && cart.some(item => item.id == p.id);
+    const mainImg = optimizeImageUrl(p.image || p.img);
+    const hoverImg = optimizeImageUrl(p.imageHover || p.imgHover || p.image || p.img);
+    const priceVal = extractPriceFromDesc(p.description) || p.price || 0;
+    const categoryLabel = p.category === 'imitation' ? 'HERITAGE JEWELLERY' : 'LUXURY SAREE';
+    const isNew = idx < 4;
+
     return `
-    <div class="product-card" style="animation: fadeInUp 0.5s ease forwards;" onclick="openProductDetail(${p.id})">
-      ${isOOS ? `<div class="oos-ribbon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:9px;height:9px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Sold Out</div>` : ''}
+    <div class="product-card" onclick="openProductDetail(${p.id})">
+      <div class="card-badge-container">
+        ${isOOS 
+          ? `<span class="badge-pill badge-oos">SOLD OUT</span>`
+          : `
+            <span class="badge-pill badge-xmas">
+              <img src="assets/christmas/santa_hat.svg" class="badge-santa-hat" alt="" aria-hidden="true">
+              <svg class="xmas-badge-svg" viewBox="0 0 24 24" width="10" height="10" fill="currentColor">
+                <path d="M12 2l2.4 6.6 7.1.5-5.3 4.6 1.7 6.9-5.9-3.7-5.9 3.7 1.7-6.9-5.3-4.6 7.1-.5L12 2z"/>
+              </svg>
+              <span>FESTIVE EDIT</span>
+            </span>
+            ${isNew ? `<span class="badge-pill badge-new">NEW ARRIVAL</span>` : ''}
+          `
+        }
+      </div>
 
       <div class="product-img ${isOOS ? 'out-of-stock' : ''}">
-        <img src="${optimizeImageUrl(p.image || p.img)}" width="300" height="400" class="img-main" loading="lazy" decoding="async" ${getSEOAttributes(p)} onerror="this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; this.style.background='linear-gradient(135deg,#f0e6d3,#faf6ef)';">
-        <img src="${optimizeImageUrl(p.imageHover || p.imgHover || p.image || p.img)}" width="300" height="400" class="img-hover" loading="lazy" decoding="async" ${getSEOAttributes(p)} onerror="this.style.display='none'">
-        <div class="product-wish ${inWishlist ? 'active' : ''}" onclick="event.stopPropagation(); addToWishlist('${p.id}')">
-          <svg class="wish-icon-svg" viewBox="0 0 24 24" fill="${inWishlist ? '#e91e63' : 'none'}" stroke="${inWishlist ? '#e91e63' : '#666'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px; transition: all 0.2s ease;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
-        </div>
-        <div class="product-share" onclick="event.stopPropagation(); shareProduct('${p.id}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        <div class="card-xmas-garland" aria-hidden="true">
+          <svg viewBox="0 0 320 28" fill="none" preserveAspectRatio="none">
+            <path d="M0,0 Q80,16 160,4 Q240,16 320,0" stroke="rgba(212,175,55,0.6)" stroke-width="1.2"/>
+            <line x1="80" y1="10" x2="80" y2="18" stroke="rgba(212,175,55,0.6)" stroke-width="1"/>
+            <circle cx="80" cy="21" r="3.5" fill="#8C1425" stroke="#ECC974" stroke-width="0.8"/>
+            <line x1="160" y1="4" x2="160" y2="12" stroke="rgba(212,175,55,0.6)" stroke-width="1"/>
+            <polygon points="160,11 162.5,16 168,16.5 164,20 165.5,25 160,22 154.5,25 156,20 152,16.5 157.5,16" fill="#ECC974"/>
+            <line x1="240" y1="10" x2="240" y2="18" stroke="rgba(212,175,55,0.6)" stroke-width="1"/>
+            <circle cx="240" cy="21" r="3.5" fill="#8C1425" stroke="#ECC974" stroke-width="0.8"/>
+          </svg>
         </div>
 
-      </div>
-      <div class="product-info">
-        <div class="product-type">${p.category.toUpperCase()}</div>
-        <h3 class="product-name">${p.name}</h3>
-        <div class="product-price">
-          <span class="price-main">₹${(extractPriceFromDesc(p.description) || p.price || 0).toLocaleString('en-IN')}</span>
+        <img src="${mainImg}" width="300" height="400" class="img-main" loading="lazy" decoding="async" ${getSEOAttributes(p)} onerror="this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; this.style.background='linear-gradient(135deg,#f0e6d3,#faf6ef)';">
+        <img src="${hoverImg}" width="300" height="400" class="img-hover" loading="lazy" decoding="async" ${getSEOAttributes(p)} onerror="this.style.display='none'">
+
+        <div class="product-card-actions">
+          <button class="action-circle-btn product-wish ${inWishlist ? 'active' : ''}" onclick="event.stopPropagation(); addToWishlist('${p.id}')" title="Add to Wishlist" aria-label="Wishlist">
+            <svg class="wish-icon-svg" viewBox="0 0 24 24" fill="${inWishlist ? '#E91E63' : 'none'}" stroke="${inWishlist ? '#E91E63' : '#2C1E0A'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+            </svg>
+          </button>
+
+          <button class="action-circle-btn product-share" onclick="event.stopPropagation(); shareProduct('${p.id}')" title="Share Product" aria-label="Share">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="18" cy="5" r="3"></circle>
+              <circle cx="6" cy="12" r="3"></circle>
+              <circle cx="18" cy="19" r="3"></circle>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+            </svg>
+          </button>
         </div>
-        ${isOOS
-        ? `<button class="btn-oos" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:auto;width:100%;padding:12px 16px;border:1.5px solid #b0937a;background:linear-gradient(135deg,#f5ede6,#efe4d8);color:#7a4a2a;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border-radius:4px;cursor:not-allowed;font-family:'Poppins',sans-serif;" disabled>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-              Currently Unavailable
-            </button>`
-        : (cart && cart.some(item => item.id == p.id))
-        ? `<button class="btn-primary added" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:auto;" onclick="event.stopPropagation();addToCart('${p.id}')">
-              Added
-            </button>`
-        : `<button class="btn-primary" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:auto;" onclick="event.stopPropagation();addToCart('${p.id}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-              Add to Cart
-            </button>`
-      }
+      </div>
+
+      <div class="product-info">
+        <!-- Christmas Background Objects Watermark -->
+        <div class="card-xmas-bg-objects" aria-hidden="true">
+          <svg viewBox="0 0 160 160" fill="none" class="xmas-bg-svg">
+            <circle cx="118" cy="88" r="28" stroke="#8C1425" stroke-width="2.2" />
+            <path d="M94 82 Q118 70 142 82" stroke="#8C1425" stroke-width="1.6" stroke-dasharray="3 2"/>
+            <path d="M94 94 Q118 82 142 94" stroke="#D4AF37" stroke-width="1.6"/>
+            <rect x="113" y="55" width="10" height="6" rx="1.5" fill="#D4AF37"/>
+            <path d="M118 36 L118 55" stroke="#D4AF37" stroke-width="1.8"/>
+            <circle cx="68" cy="116" r="22" stroke="#D4AF37" stroke-width="2" />
+            <path d="M68 102 L70 110 L78 111 L72 116 L74 124 L68 120 L62 124 L64 116 L58 111 L66 110 Z" fill="#8C1425" opacity="0.5"/>
+            <rect x="64" y="90" width="8" height="5" rx="1" fill="#D4AF37"/>
+            <path d="M68 74 L68 90" stroke="#D4AF37" stroke-width="1.6"/>
+            <path d="M38 128 C26 122 20 108 32 98 C38 108 48 114 38 128 Z" fill="#2E7D32" opacity="0.45"/>
+            <path d="M52 142 C40 150 28 144 32 130 C42 130 52 134 52 142 Z" fill="#2E7D32" opacity="0.45"/>
+            <circle cx="36" cy="124" r="5" fill="#8C1425" opacity="0.75"/>
+            <circle cx="44" cy="128" r="4.5" fill="#A8182D" opacity="0.75"/>
+            <circle cx="34" cy="133" r="4" fill="#8C1425" opacity="0.75"/>
+            <path d="M138 132 C138 124 134 114 126 112 C118 114 114 124 114 132 Z" stroke="#D4AF37" stroke-width="1.8" fill="none"/>
+            <path d="M110 132 Q126 136 142 132" stroke="#D4AF37" stroke-width="2"/>
+            <circle cx="126" cy="136" r="2.5" fill="#8C1425"/>
+            <circle cx="126" cy="110" r="3" stroke="#D4AF37" stroke-width="1.5" fill="none"/>
+            <path d="M14 80 L30 92 M18 72 L32 82 M26 66 L36 74 M14 90 L26 90" stroke="#2E7D32" stroke-width="1.6" stroke-linecap="round" opacity="0.5"/>
+            <path d="M32 46 L34 52 L40 54 L34 56 L32 62 L30 56 L24 54 L30 52 Z" fill="#D4AF37" opacity="0.65"/>
+            <path d="M84 40 L85 44 L89 45 L85 46 L84 50 L83 46 L79 45 L83 44 Z" fill="#ECC974" opacity="0.65"/>
+            <path d="M144 68 L145 71 L148 72 L145 73 L144 76 L143 73 L140 72 L143 71 Z" fill="#ECC974" opacity="0.55"/>
+          </svg>
+        </div>
+
+        <div class="product-meta-row">
+          <span class="product-type">${categoryLabel}</span>
+          <span class="stock-indicator ${isOOS ? 'oos' : 'in-stock'}">
+            <span class="stock-dot"></span>
+            ${isOOS ? 'Sold Out' : 'In Stock'}
+          </span>
+        </div>
+
+        <h3 class="product-name" title="${p.name}">${p.name}</h3>
+
+        <div class="product-price-row">
+          <div class="price-group">
+            <span class="price-main">₹${priceVal.toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+
+        <div class="card-festive-perk">
+          <svg viewBox="0 0 24 24" class="festive-perk-icon" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="8" width="18" height="13" rx="2"></rect>
+            <path d="M12 8v13"></path>
+            <path d="M3 12h18"></path>
+            <path d="M7.5 8a2.5 2.5 0 0 1 0-5c2 0 4.5 5 4.5 5s2.5-5 4.5-5a2.5 2.5 0 0 1 0 5"></path>
+          </svg>
+          <span>Complimentary Festive Gift Box</span>
+        </div>
+
+        <div class="product-card-buttons">
+          ${isOOS
+            ? `<button class="btn-card-oos" disabled>
+                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                 <span>Sold Out</span>
+               </button>`
+            : (isItemInCart
+                ? `<button class="btn-card-cart added" onclick="event.stopPropagation(); addToCart('${p.id}')">
+                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                     <span>Added</span>
+                   </button>`
+                : `<button class="btn-card-cart" onclick="event.stopPropagation(); addToCart('${p.id}')">
+                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                     <span>Add to Bag</span>
+                   </button>`
+              )
+          }
+
+          <button class="btn-card-wa" onclick="event.stopPropagation(); orderOnWhatsApp('${p.id}')" title="Direct WhatsApp Enquiry" aria-label="WhatsApp Order">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm5.79 14.07c-.24.67-1.39 1.29-1.93 1.37-.5.08-1.12.12-3.62-.91-3.05-1.25-5.02-4.35-5.17-4.55-.15-.2-1.24-1.65-1.24-3.15 0-1.5 1.15-2.24 1.55-2.24.18 0 .34.01.48.01.37.01.55.03.78.6.28.67.95 2.32 1.04 2.49.08.17.14.37.03.59-.11.22-.17.36-.34.56-.17.2-.36.45-.51.6-.17.17-.35.35-.15.7.2.35.89 1.47 1.91 2.38 1.31 1.17 2.42 1.53 2.77 1.7.35.17.55.15.76-.08.2-.24.87-1.02 1.1-1.37.23-.35.46-.29.77-.18.31.12 1.99.94 2.33 1.11.34.17.57.26.65.41.08.15.08.87-.16 1.54z"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -1622,13 +1884,26 @@ function renderNewArrivals() {
 
     return `
     <div class="product-card na-product-card" onclick="openProductDetail(${p.id})">
-      <div class="na-badge">
-        <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M12 2L14.4 8.6L21.5 9.1L16 13.7L17.7 20.6L12 16.9L6.3 20.6L8 13.7L2.5 9.1L9.6 8.6L12 2Z"/></svg>
-        <span>NEW ARRIVAL</span>
+      <div class="na-badge" style="position: relative; overflow: visible; background: linear-gradient(135deg, #8C1425 0%, #5E0814 100%); color: #FFF2C6; border: 1px solid rgba(236,201,116,0.55); box-shadow: 0 2px 8px rgba(140,20,37,0.35);">
+        <img src="assets/christmas/santa_hat.svg" class="badge-santa-hat" alt="" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="11" height="11" fill="#ECC974"><path d="M12 2l2.4 6.6 7.1.5-5.3 4.6 1.7 6.9-5.9-3.7-5.9 3.7 1.7-6.9-5.3-4.6 7.1-.5L12 2z"/></svg>
+        <span>CHRISTMAS SPECIAL</span>
       </div>
       ${isOOS ? `<div class="oos-ribbon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:9px;height:9px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Sold Out</div>` : ''}
 
       <div class="product-img ${isOOS ? 'out-of-stock' : ''}">
+        <div class="card-xmas-garland" aria-hidden="true">
+          <svg viewBox="0 0 320 28" fill="none" preserveAspectRatio="none">
+            <path d="M0,0 Q80,16 160,4 Q240,16 320,0" stroke="rgba(212,175,55,0.6)" stroke-width="1.2"/>
+            <line x1="80" y1="10" x2="80" y2="18" stroke="rgba(212,175,55,0.6)" stroke-width="1"/>
+            <circle cx="80" cy="21" r="3.5" fill="#8C1425" stroke="#ECC974" stroke-width="0.8"/>
+            <line x1="160" y1="4" x2="160" y2="12" stroke="rgba(212,175,55,0.6)" stroke-width="1"/>
+            <polygon points="160,11 162.5,16 168,16.5 164,20 165.5,25 160,22 154.5,25 156,20 152,16.5 157.5,16" fill="#ECC974"/>
+            <line x1="240" y1="10" x2="240" y2="18" stroke="rgba(212,175,55,0.6)" stroke-width="1"/>
+            <circle cx="240" cy="21" r="3.5" fill="#8C1425" stroke="#ECC974" stroke-width="0.8"/>
+          </svg>
+        </div>
+
         <img src="${mainImg}" width="300" height="400" class="img-main" loading="lazy" decoding="async" ${getSEOAttributes(p)} onerror="this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; this.style.background='linear-gradient(135deg,#f0e6d3,#faf6ef)';">
         <img src="${hoverImg}" width="300" height="400" class="img-hover" loading="lazy" decoding="async" ${getSEOAttributes(p)} onerror="this.style.display='none'">
         <div class="product-wish ${inWishlist ? 'active' : ''}" onclick="event.stopPropagation(); addToWishlist('${p.id}')" title="Add to Wishlist">
@@ -1639,10 +1914,47 @@ function renderNewArrivals() {
         </div>
       </div>
       <div class="product-info">
+        <!-- Christmas Background Objects Watermark -->
+        <div class="card-xmas-bg-objects" aria-hidden="true">
+          <svg viewBox="0 0 160 160" fill="none" class="xmas-bg-svg">
+            <circle cx="118" cy="88" r="28" stroke="#8C1425" stroke-width="2.2" />
+            <path d="M94 82 Q118 70 142 82" stroke="#8C1425" stroke-width="1.6" stroke-dasharray="3 2"/>
+            <path d="M94 94 Q118 82 142 94" stroke="#D4AF37" stroke-width="1.6"/>
+            <rect x="113" y="55" width="10" height="6" rx="1.5" fill="#D4AF37"/>
+            <path d="M118 36 L118 55" stroke="#D4AF37" stroke-width="1.8"/>
+            <circle cx="68" cy="116" r="22" stroke="#D4AF37" stroke-width="2" />
+            <path d="M68 102 L70 110 L78 111 L72 116 L74 124 L68 120 L62 124 L64 116 L58 111 L66 110 Z" fill="#8C1425" opacity="0.5"/>
+            <rect x="64" y="90" width="8" height="5" rx="1" fill="#D4AF37"/>
+            <path d="M68 74 L68 90" stroke="#D4AF37" stroke-width="1.6"/>
+            <path d="M38 128 C26 122 20 108 32 98 C38 108 48 114 38 128 Z" fill="#2E7D32" opacity="0.45"/>
+            <path d="M52 142 C40 150 28 144 32 130 C42 130 52 134 52 142 Z" fill="#2E7D32" opacity="0.45"/>
+            <circle cx="36" cy="124" r="5" fill="#8C1425" opacity="0.75"/>
+            <circle cx="44" cy="128" r="4.5" fill="#A8182D" opacity="0.75"/>
+            <circle cx="34" cy="133" r="4" fill="#8C1425" opacity="0.75"/>
+            <path d="M138 132 C138 124 134 114 126 112 C118 114 114 124 114 132 Z" stroke="#D4AF37" stroke-width="1.8" fill="none"/>
+            <path d="M110 132 Q126 136 142 132" stroke="#D4AF37" stroke-width="2"/>
+            <circle cx="126" cy="136" r="2.5" fill="#8C1425"/>
+            <circle cx="126" cy="110" r="3" stroke="#D4AF37" stroke-width="1.5" fill="none"/>
+            <path d="M14 80 L30 92 M18 72 L32 82 M26 66 L36 74 M14 90 L26 90" stroke="#2E7D32" stroke-width="1.6" stroke-linecap="round" opacity="0.5"/>
+            <path d="M32 46 L34 52 L40 54 L34 56 L32 62 L30 56 L24 54 L30 52 Z" fill="#D4AF37" opacity="0.65"/>
+            <path d="M84 40 L85 44 L89 45 L85 46 L84 50 L83 46 L79 45 L83 44 Z" fill="#ECC974" opacity="0.65"/>
+            <path d="M144 68 L145 71 L148 72 L145 73 L144 76 L143 73 L140 72 L143 71 Z" fill="#ECC974" opacity="0.55"/>
+          </svg>
+        </div>
+
         <div class="product-type">${categoryName}</div>
         <h3 class="product-name">${p.name}</h3>
         <div class="product-price">
           <span class="price-main">₹${priceVal.toLocaleString('en-IN')}</span>
+        </div>
+        <div class="card-festive-perk" style="margin-top: 6px;">
+          <svg viewBox="0 0 24 24" class="festive-perk-icon" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="8" width="18" height="13" rx="2"></rect>
+            <path d="M12 8v13"></path>
+            <path d="M3 12h18"></path>
+            <path d="M7.5 8a2.5 2.5 0 0 1 0-5c2 0 4.5 5 4.5 5s2.5-5 4.5-5a2.5 2.5 0 0 1 0 5"></path>
+          </svg>
+          <span>Festive Gift Box Included</span>
         </div>
         ${isOOS
         ? `<button class="btn-oos" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:auto;width:100%;padding:12px 16px;border:1.5px solid #b0937a;background:linear-gradient(135deg,#f5ede6,#efe4d8);color:#7a4a2a;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border-radius:4px;cursor:not-allowed;font-family:'Poppins',sans-serif;" disabled>
@@ -1665,9 +1977,15 @@ function renderNewArrivals() {
 
 window.switchCategory = (cat) => {
   currentCategory = cat;
-  document.querySelectorAll('.tab-item').forEach(tab => {
-    tab.classList.toggle('active', tab.dataset.cat === cat);
+  currentSubFilter = 'all';
+  document.querySelectorAll('.boutique-tab-btn, .tab-item').forEach(tab => {
+    const isMatch = tab.dataset.cat === cat;
+    tab.classList.toggle('active', isMatch);
+    if (tab.setAttribute) {
+      tab.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+    }
   });
+  renderSubFilters();
   renderGrid();
 }
 
@@ -3051,9 +3369,16 @@ document.addEventListener('DOMContentLoaded', () => {
 if (urlCat) {
   currentCategory = urlCat;
   // Update Tab UI if on collections page
-  document.querySelectorAll('.tab-item').forEach(tab => {
-    tab.classList.toggle('active', tab.dataset.cat === currentCategory);
+  document.querySelectorAll('.boutique-tab-btn, .tab-item').forEach(tab => {
+    const isMatch = tab.dataset.cat === currentCategory;
+    tab.classList.toggle('active', isMatch);
+    if (tab.setAttribute) {
+      tab.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+    }
   });
+  if (typeof renderSubFilters === 'function') {
+    renderSubFilters();
+  }
 }
 
 // Handle Product ID from URL

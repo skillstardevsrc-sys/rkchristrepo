@@ -1538,8 +1538,20 @@ body.xmas-theme [class*="fa-"] {
   gap: 50px;
 }
 
-.xmas-footer-brand .logo-img {
+.xmas-footer-brand .nav-logo {
+  display: inline-flex;
+  align-items: center;
+  position: static;
   margin-bottom: 16px;
+  text-decoration: none;
+}
+
+.xmas-footer-brand .logo-img {
+  height: clamp(26px, 3.5vw, 34px);
+  width: auto;
+  max-width: 100%;
+  display: block;
+  margin-bottom: 0;
   filter: brightness(1.1);
 }
 
@@ -1708,6 +1720,26 @@ body.xmas-theme [class*="fa-"] {
   .xmas-footer-grid {
     grid-template-columns: 1fr;
     gap: 36px;
+    text-align: center;
+  }
+
+  .xmas-footer-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .xmas-footer-brand .nav-logo {
+    position: static !important;
+    transform: none !important;
+    left: auto !important;
+    top: auto !important;
+    margin: 0 auto 16px auto !important;
+    justify-content: center !important;
+  }
+
+  .xmas-footer-socials {
+    justify-content: center;
   }
 }
 
@@ -1812,7 +1844,7 @@ body.xmas-theme [class*="fa-"] {
 /* ── CHRISTMAS AUTH MODAL ── */
 #authModal .modal-content {
   background-color: #280409 !important;
-  background-image: url('assets/christmas/login_bg.jpg') !important;
+  background-image: url('assets/christmas/login_xmas_goblin_bg.jpg') !important;
   background-size: cover !important;
   background-position: center left !important;
   background-repeat: no-repeat !important;
